@@ -2,7 +2,7 @@ require './Modules/defaults'
 node.reverse_merge!(defaults_load(__FILE__))
 
 # register openstack repository
-package "centos-release-openstack-mitaka" do
+package "centos-release-openstack-ocata" do
   action :install
 end
 
