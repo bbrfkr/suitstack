@@ -1,0 +1,6 @@
+---
+openstack_horizon:
+  controller: controller
+  domain: default
+  timezone: Asia/Tokyo
+

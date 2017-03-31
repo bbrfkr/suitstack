@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+
+# constant
+VERSION="0.1"
+
+# variable
+$rc = 0
+
+# function
+def show_help() 
+  puts ("suit: Simply Usable Infrastructure Template ")
+  puts ("")
+  puts ("=== Usage === ")
+  puts ("* Bin/suit [-h] [-v]")
+  puts ("    -h : show this help message")
+  puts ("    -v : show version")
+  puts ("")
+  puts ("* Bin/suit role list")
+  puts ("    show installed role list")
+  puts ("")
+  puts ("* Bin/suit role params ROLE")
+  puts ("    show default parameters of the specified role")
+  puts ("")
+  puts ("* Bin/suit itamae exec [-V]")
+  puts ("    execute itamae")
+  puts ("    -V : with verbose output")
+  puts ("")
+  puts ("* Bin/suit itamae test [-V]")
+  puts ("    dry-run itamae")
+  puts ("    -V : with verbose output")
+  puts ("")
+  puts ("* Bin/suit serverspec exec")
+  puts ("    execute serverspec")
+  puts ("")
+  puts ("* Bin/suit infrataster exec")
+  puts ("    execute infrataset")
+end
+
+def show_version()
+  puts ("suit #{ VERSION }")
+end
+
+def exec_itamae(mode, option)
+  system "Bin/itamae_exec.sh #{ mode.to_s } #{ option.to_s }"
+  $rc = $?.to_i
+end
+
+def exec_serverspec(mode, option)
+  system "Bin/serverspec_exec.sh #{ mode.to_s } #{ option.to_s }"
+  $rc = $?.to_i
+end
+
+def exec_infrataster(mode, option)
+  system "Bin/infrataster_exec.sh #{ mode.to_s } #{ option.to_s }"
+  $rc = $?.to_i
+end
+
+def show_role_list()
+  system "ls -1 Roles"
+  $rc = $?.to_i
+end
+
+def show_role_params(role)
+  if File.exists?("Roles/" + role)
+    if File.exists?("Roles/" + role + "/defaults/main.yml")
+      File.open("Roles/" + role + "/defaults/main.yml") do |file|
+        file.each_line do |line|
+          puts line
+        end
+      end
+    else
+      puts "ERROR: role '#{ role }' doesn't have defaults/main.yml"
+    end
+  else
+      puts "ERROR: role '#{ role }' is not found"
+  end
+end
+
+def parse(args)
+  arg0 = args.shift
+  arg1 = args.shift
+  arg2 = args.join(" ")
+
+  case arg0
+  when nil, "-h"
+    show_help()
+  when "-v"
+    show_version()
+  when "role"
+    case arg1
+    when "list"
+      if arg2 == ""
+        show_role_list()
+      else
+        puts "ERROR: invalid option"
+      end
+    when "params"
+      if arg2 == nil
+        pust "ERROR: specify a role name"
+      else
+        show_role_params(arg2)
+      end
+    else
+      puts "ERROR: invalid subcommand"
+    end
+  when "itamae"
+    exec_itamae(arg1, arg2)
+  when "serverspec"
+    exec_serverspec(arg1, arg2)
+  when "infrataster"
+    exec_infrataster(arg1, arg2)
+  else
+    puts "ERROR: invalid subcommand #{ arg0 }"
+  end
+end
+
+# main
+parse(ARGV)
+if $rc == 0
+  exit 0
+else
+  exit 1
+end
+

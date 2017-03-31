@@ -1,0 +1,5 @@
+---
+selinux:
+  status: Enforcing
+  reboot_waittime: 3
+

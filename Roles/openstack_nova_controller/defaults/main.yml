@@ -1,0 +1,14 @@
+---
+openstack_nova_controller:
+  mariadb_pass: password
+  novadb_pass: password
+  scripts_dir: /root/openrc_files
+  nova_pass: password
+  domain: default
+  region: RegionOne
+  controller: localhost
+  mgmt_ip: 127.0.0.1
+  rabbitmq_pass: password
+  keyfiles_dir: /var/suit_keyfiles
+  cpu_allocation_ratio: 16.0
+  ram_allocation_ratio: 1.5

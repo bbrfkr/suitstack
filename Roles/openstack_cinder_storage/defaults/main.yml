@@ -1,0 +1,12 @@
+---
+openstack_cinder_storage:
+  cinder_devices:
+    - sdb
+  cinder_vg: cinder_vg
+  cinder_dbpass: password
+  controller: controller
+  mgmt_ip: 127.0.0.1
+  rabbitmq_pass: password
+  domain: default
+  cinder_pass: password
+

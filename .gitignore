@@ -1,0 +1,8 @@
+Env/inventory.yml
+Env/properties.yml
+Env/user_files/*
+/**/*.pem
+/**/id_rsa
+Roles/openstack_swift_storage/itamae/files/*
+!/**/.gitkeep
+

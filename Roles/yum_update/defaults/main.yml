@@ -1,0 +1,4 @@
+---
+yum_update:
+  reboot_waittime: 3
+

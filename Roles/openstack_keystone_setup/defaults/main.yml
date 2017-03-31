@@ -1,0 +1,10 @@
+---
+openstack_keystone_setup:
+  admin_token: password
+  controller: localhost
+  region: RegionOne
+  domain: default
+  admin_pass: password
+  demo_pass: password
+  scripts_dir: /root/openrc_files
+

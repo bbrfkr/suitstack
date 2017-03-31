@@ -1,0 +1,35 @@
+require 'rake'
+require 'rspec/core/rake_task'
+require 'yaml'
+
+connections = YAML.load_file('Env/inventory.yml')
+
+desc "Run serverspec to all connections"
+task :spec => 'spec:all'
+
+namespace :spec do
+  task :all => connections.each.map {|connection| 'spec:' + connection['conn_name'] }
+  connections.each do |connection|
+    desc "Run serverspec to #{connection['conn_name']}"
+    RSpec::Core::RakeTask.new(connection['conn_name'].to_sym) do |t|
+      ENV['CONN_NAME'] = connection['conn_name']
+      ENV['CONN_HOST'] = connection['conn_host']
+      ENV['CONN_USER'] = connection['conn_user']
+      if connection['conn_pass'] != nil
+        ENV['CONN_PASS'] = connection['conn_pass']
+      end
+      if connection['conn_idkey'] != nil
+        ENV['CONN_IDKEY'] = connection['conn_idkey']
+      end
+      if connection['conn_passphrase'] != nil
+        ENV['CONN_PASSPHRASE'] = connection['conn_passphrase']
+      end
+      if connection['conn_keyauth'] != nil
+        ENV['CONN_KEYAUTH'] = connection['conn_keyauth'].to_s
+      end
+      ENV['CONN_PORT'] = connection['conn_port'].to_s
+      t.pattern = 'Roles/{' + connection['roles'].join(",") + '}/serverspec/**/*_spec.rb'
+    end
+  end
+end
+

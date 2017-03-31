@@ -1,0 +1,18 @@
+---
+openstack_swift_proxy:
+  scripts_dir: /root/openrc_files
+  domain: default
+  swift_pass: password
+  region: RegionOne
+  controller: localhost
+  replica_count: 3
+  storage_nodes:
+    - mgmt_ip: 192.168.0.10
+      devices:
+        - "sdb"
+        - "sdc"
+        - "sdd"
+  fetch_rings_dir: "Roles/openstack_swift_storage/itamae/files"
+  hash_path_suffix: password
+  hash_path_prefix: password
+

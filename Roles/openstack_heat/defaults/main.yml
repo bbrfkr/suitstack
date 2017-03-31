@@ -1,0 +1,12 @@
+---
+openstack_heat:
+  mariadb_pass: password
+  heat_dbpass: password
+  scripts_dir: /root/openrc_files
+  domain: default
+  heat_pass: password
+  region: RegionOne
+  controller: localhost
+  heat_domain_admin_pass: password
+  rabbitmq_pass: password
+  keyfiles_dir: /var/suit_keyfiles

@@ -1,0 +1,13 @@
+---
+openstack_network:
+  hostname: localhost.localdomain
+  hosts_entries:
+    - server: 'localhost localhost.localdomain localhost4 localhost4.localdomain4'
+      ip: '127.0.0.1'
+    - server: 'localhost6 localhost6.localdomain6'
+      ip: '::1'
+  dns_servers:
+    - server: 8.8.8.8
+    - server: 8.8.4.4
+  reboot_waittime: 3
+

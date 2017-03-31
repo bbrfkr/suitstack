@@ -1,0 +1,12 @@
+---
+openstack_cinder_controller:
+  mariadb_pass: password
+  cinder_dbpass: password
+  scripts_dir: /root/openrc_files
+  cinder_pass: password
+  domain: default
+  region: RegionOne
+  controller: localhost
+  mgmt_ip: 127.0.0.1
+  rabbitmq_pass: password
+  keyfiles_dir: /var/suit_keyfiles

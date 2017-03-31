@@ -1,0 +1,11 @@
+---
+openstack_ntp:
+  ntp_servers:
+    - server: 0.jp.pool.ntp.org
+    - server: 1.jp.pool.ntp.org
+    - server: 2.jp.pool.ntp.org
+    - server: 3.jp.pool.ntp.org
+  controller: localhost.localdomain
+  allow_sync:
+    - network: 192.168.0.0/24
+
