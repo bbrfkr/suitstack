@@ -12,6 +12,12 @@ describe ("openstack_mariadb") do
     end
   end
 
+  describe ("check specified bind-address is set") do
+    describe file("/etc/my.cnf.d/openstack.cnf") do
+      its(:content) { should match /^bind-address = #{ property['openstack_mariadb']['bind_address'] }$/ }
+    end
+  end
+
   describe ("check service is enable") do
     describe service("mariadb") do
       it { should be_enabled }
@@ -19,10 +25,5 @@ describe ("openstack_mariadb") do
     end
   end
 
-  describe ("check specified bind-address is set") do
-    describe file("/etc/my.cnf.d/openstack.cnf") do
-      its(:content) { should match /^bind-address = #{ property['openstack_mariadb']['bind_address'] }$/ }
-    end
-  end
 end
 
