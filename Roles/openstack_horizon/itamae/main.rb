@@ -3,7 +3,6 @@ require './Modules/blockinfile'
 node.reverse_merge!(defaults_load(__FILE__))
 
 controller = node['openstack_horizon']['controller']
-domain = node['openstack_horizon']['domain']
 timezone = node['openstack_horizon']['timezone']
 
 # install package
@@ -18,7 +17,7 @@ file "/etc/openstack-dashboard/local_settings" do
   notifies :restart, "service[memcached]", :immediately
   block do |content|
     content.gsub!(/^OPENSTACK_HOST = .*$/, "OPENSTACK_HOST = \"#{ controller }\"") 
-    content.gsub!(/^ALLOWED_HOSTS = .*$/, "ALLOWED_HOSTS = ['*', ]") 
+    content.gsub!(/^ALLOWED_HOSTS = .*$/, "ALLOWED_HOSTS = ['*']") 
     memcached_config = <<-"EOF"
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
@@ -40,7 +39,7 @@ OPENSTACK_API_VERSIONS = {
 }
     EOF
     content.gsub!(/^.?OPENSTACK_API_VERSIONS = \{\n.*?\n.?\}/m, api_ver_config.chomp)
-    content.gsub!(/^.?OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = .*/, "OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = \"#{ domain }\"")
+    content.gsub!(/^.?OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = .*/, "OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = \"default\"")
     content.gsub!(/^OPENSTACK_KEYSTONE_DEFAULT_ROLE = .*/, "OPENSTACK_KEYSTONE_DEFAULT_ROLE = \"user\"")
     content.gsub!(/^TIME_ZONE = .*$/, "TIME_ZONE = \"#{ timezone }\"")
   end

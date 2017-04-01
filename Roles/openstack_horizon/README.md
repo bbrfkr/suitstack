@@ -20,7 +20,6 @@ nothing
 ---
 openstack_horizon:
   controller: controller  # hostname or ip of controller node
-  domain: default         # domain name of openstack environment
   timezone: Asia/Tokyo    # timezone
 ```
 
