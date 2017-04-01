@@ -5,8 +5,8 @@ node.reverse_merge!(defaults_load(__FILE__))
 mgmt_ip = node['openstack_nova_compute']['mgmt_ip']
 controller = node['openstack_nova_compute']['controller']
 rabbitmq_pass = node['openstack_nova_compute']['rabbitmq_pass']
-domain = node['openstack_nova_compute']['domain']
 nova_pass = node['openstack_nova_compute']['nova_pass']
+placement_pass = node['openstack_nova_compute']['placement_pass']
 console_keymap = node['openstack_nova_compute']['console_keymap']
 
 package "openstack-nova-compute" do
@@ -22,21 +22,19 @@ file "/etc/nova/nova.conf" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-rpc_backend = rabbit
-auth_strategy = keystone
+enabled_apis = osapi_compute,metadata
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 my_ip = #{ mgmt_ip }
 use_neutron = True
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, DEFAULT)", content) 
 
-    section = "[oslo_messaging_rabbit]"
+    section = "[api]"
     settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
+auth_strategy = keystone
     EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, oslo_messaging_rabbit)", content)
+    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, api)", content) 
 
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
@@ -44,8 +42,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = nova
 password = #{ nova_pass }
@@ -72,6 +70,19 @@ api_servers = http://#{ controller }:9292
 lock_path = /var/lib/nova/tmp
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, oslo_concurrency)", content)
+
+    section = "[placement]"
+    settings = <<-"EOS"
+os_region_name = #{ region }
+project_domain_name = default
+project_name = service
+auth_type = password
+user_domain_name = default
+auth_url = http://#{ controller }:35357/v3
+username = placement
+password = #{ placement_pass }
+    EOS
+    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, placement)", content)
 
     if hw_support == "0"
       section = "[libvirt]"

@@ -3,7 +3,7 @@ openstack_nova_compute:
   mgmt_ip: 127.0.0.1
   controller: localhost
   rabbitmq_pass: password
-  domain: default
   nova_pass: password
+  placement_pass: password
   console_keymap: ja
 

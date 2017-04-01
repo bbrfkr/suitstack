@@ -23,8 +23,8 @@ openstack_nova_compute:
   mgmt_ip: 127.0.0.1       # ip address of compute node
   controller: localhost    # hostname or ip of controller node
   rabbitmq_pass: password  # password of openstack user for rabbitmq
-  domain: default          # domain name of openstack environment
   nova_pass: password      # password of nova user
+  placement_pass: password # password of placement user
   console_keymap: ja       # keymap used by console
 ```
 
