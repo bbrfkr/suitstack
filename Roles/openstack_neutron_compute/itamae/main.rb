@@ -4,7 +4,6 @@ node.reverse_merge!(defaults_load(__FILE__))
 
 controller = node['openstack_neutron_compute']['controller']
 rabbitmq_pass = node['openstack_neutron_compute']['rabbitmq_pass']
-domain = node['openstack_neutron_compute']['domain']
 neutron_pass = node['openstack_neutron_compute']['neutron_pass']
 provider_ifname = node['openstack_neutron_compute']['provider_ifname']
 overlayif_ip = node['openstack_neutron_compute']['overlayif_ip']
@@ -23,18 +22,10 @@ file "/etc/neutron/neutron.conf" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-rpc_backend = rabbit
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 auth_strategy = keystone
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_compute, DEFAULT)", content)
-
-    section = "[oslo_messaging_rabbit]"
-    settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_compute, oslo_messaging_rabbit)", content)
 
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
@@ -42,8 +33,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain } 
+project_domain_name = default
+user_domain_name = default 
 project_name = service
 username = neutron
 password = #{ neutron_pass }
@@ -78,7 +69,7 @@ l2_population = True
 
     section = "[securitygroup]"
     settings = <<-"EOS"
-enable_security_group = True
+enable_security_group = true
 firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_compute, securitygroup)", content)
@@ -94,8 +85,8 @@ file "/etc/nova/nova.conf" do
 url = http://#{ controller }:9696
 auth_url = http://#{ controller }:35357
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 region_name = #{ region }
 project_name = service
 username = neutron

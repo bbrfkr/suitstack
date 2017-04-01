@@ -22,7 +22,6 @@ nothing
 openstack_neutron_compute:
   controller: controller   # hostname or ip of controller node
   rabbitmq_pass: password  # password of openstack user for rabbitmq
-  domain: default          # domain name of openstack environment
   neutron_pass: password   # password of neutron user
   provider_ifname: enp0s3  # name of interface for provider network
   overlayif_ip: 127.0.0.1  # ip with interface for overlay
