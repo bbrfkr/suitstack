@@ -12,9 +12,9 @@ describe ("openstack_memcached") do
     end
   end
 
-  describe ("check listen address is any address") do
+  describe ("check listen address includes controller") do
     describe file("/etc/sysconfig/memcached") do
-      its(:content) { should match /^OPTIONS=""$/ }
+      its(:content) { should match /^OPTIONS="-l 127\.0\.0\.1,::1,property['openstack_memcached']['controller']"$/ }
     end
   end
 
