@@ -40,11 +40,20 @@ describe ("openstack_keystone_install") do
     describe file("#{ keyfiles_dir }/openstack_keystone_install/fernet_setup") do
       it { should exist }
     end
+    describe file("#{ keyfiles_dir }/openstack_keystone_install/credential_setup") do
+      it { should exist }
+    end
+  end
+
+  describe ("check Identity service bootstrap is completed ") do
+    describe file("#{ keyfiles_dir }/openstack_keystone_install/bootstrap") do
+      it { should exist }
+    end
   end
 
   describe ("check wsgi setting is set") do
     describe file("/etc/httpd/conf.d/wsgi-keystone.conf") do
-      it { should exist }
+      it { should be_symlink }
     end
   end
 

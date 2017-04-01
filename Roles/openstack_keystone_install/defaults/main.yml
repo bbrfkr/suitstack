@@ -2,7 +2,8 @@
 openstack_keystone_install:
   mariadb_pass: password
   keystone_dbpass: password
-  admin_token: password
+  admin_pass: password
   controller: localhost
   keyfiles_dir: /var/suit_keyfiles
+  region: RegionOne
 

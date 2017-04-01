@@ -4,9 +4,10 @@ node.reverse_merge!(defaults_load(__FILE__))
 
 mariadb_pass = node['openstack_keystone_install']['mariadb_pass']
 keystone_dbpass = node['openstack_keystone_install']['keystone_dbpass']
-admin_token = node['openstack_keystone_install']['admin_token']
+admin_pass = node['openstack_keystone_install']['admin_pass']
 controller = node['openstack_keystone_install']['controller']
 keyfiles_dir = node['openstack_keystone_install']['keyfiles_dir']
+region = node['openstack_keystone_install']['region']
 
 # create database
 execute <<-"EOS" do
@@ -42,17 +43,6 @@ packages.each do |pkg|
 end
 
 # modify config file
-file "/etc/keystone/keystone.conf" do
-  action :edit
-  block do |content|
-    section = "[DEFAULT]"
-    settings = <<-"EOS"
-admin_token = #{ admin_token }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_keystone_install, DEFAULT)", content)
-  end
-end
-
 file "/etc/keystone/keystone.conf" do
   action :edit
   notifies :restart, "service[httpd]"
@@ -92,6 +82,24 @@ execute "keystone-manage fernet_setup --keystone-user keystone --keystone-group 
   not_if "ls #{ keyfiles_dir }/openstack_keystone_install/fernet_setup"
 end
 
+execute "keystone-manage credential_setup --keystone-user keystone --keystone-group keystone && touch #{ keyfiles_dir }/openstack_keystone_install/credential_setup" do
+  not_if "ls #{ keyfiles_dir }/openstack_keystone_install/credential_setup"
+end
+
+# Bootstrap the Identity service
+cmd = <<-"EOS"
+  keystone-manage bootstrap --bootstrap-password #{ admin_pass } \\
+    --bootstrap-admin-url http://#{ controller }:35357/v3/ \\
+    --bootstrap-internal-url http://#{ controller }:5000/v3/ \\
+    --bootstrap-public-url http://#{ controller }:5000/v3/ \\
+    --bootstrap-region-id #{ region } && \\
+  touch #{ keyfiles_dir }/openstack_keystone_install/bootstrap
+EOS
+
+execute cmd do
+  not_if "ls #{ keyfiles_dir }/openstack_keystone_install/bootstrap"
+end
+
 # setting apache
 file "/etc/httpd/conf/httpd.conf" do
   action :edit
@@ -102,7 +110,8 @@ file "/etc/httpd/conf/httpd.conf" do
   end
 end
 
-remote_file "/etc/httpd/conf.d/wsgi-keystone.conf" do
+link "/etc/httpd/conf.d/wsgi-keystone.conf" do
+  to "/usr/share/keystone/wsgi-keystone.conf"
   action :create
   notifies :restart, "service[httpd]"
 end
