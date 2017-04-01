@@ -6,7 +6,6 @@ mariadb_pass = node['openstack_glance']['mariadb_pass']
 keyfiles_dir = node['openstack_glance']['keyfiles_dir']
 glance_dbpass = node['openstack_glance']['glance_dbpass']
 scripts_dir = node['openstack_glance']['scripts_dir']
-domain = node['openstack_glance']['domain']
 glance_pass = node['openstack_glance']['glance_pass']
 controller = node['openstack_glance']['controller']
 region = node['openstack_glance']['region']
@@ -37,7 +36,7 @@ EOS
 end
 
 # create glance user
-execute "#{ scripts } openstack user create --domain #{ domain } --password #{ glance_pass } glance" do 
+execute "#{ scripts } openstack user create --domain default --password #{ glance_pass } glance" do 
   not_if "#{ scripts } openstack user list | grep glance"
 end
 
@@ -94,8 +93,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = glance
 password = #{ glance_pass }
@@ -135,8 +134,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = glance
 password = #{ glance_pass }

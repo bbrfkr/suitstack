@@ -4,7 +4,6 @@ openstack_glance:
   keyfiles_dir: /var/suit_keyfiles
   glance_dbpass: password
   scripts_dir: /root/openrc_files
-  domain: default
   glance_pass: password
   controller: localhost
   region: RegionOne
