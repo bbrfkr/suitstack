@@ -10,14 +10,17 @@ This role executes installing and setting memcached for openstack environment.
 
 ## tests (serverspec)
 1. check memcached packages are installed
-2. check listen address is any address
+2. check listen address includes controller
 3. check memcached service is running and enabled
 
 ## tests (infrataster)
 nothing
 
 ## parameters
-nothing
+```
+openstack_memcached:
+  controller: controller  # ip or hostname of controller node
+```
 
 ## supported os
 * CentOS 7
