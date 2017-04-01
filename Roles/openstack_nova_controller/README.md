@@ -6,28 +6,31 @@ This role executes install and setting nova for controller node.
 ## procedures
 1.  create databases
 2.  grant privileges to access databases
-3.  create nova user
-4.  add admin role to nova user
-5.  create nova service entity
-6.  create endpoints for nova
+3.  create nova and placement users
+4.  add admin role to nova and placement users
+5.  create nova and placement service entities
+6.  create endpoints for nova and placement
 7.  install packages
 8.  edit config file
-9.  create keyfiles dir
-10. deploy service databases
-11. enable and start services
+9.  supply bug fix to enable access to the placement api
+10. create keyfiles dir
+11. deploy service databases
+12. create cell1 cell
+13. enable and start services
 
 ## tests (serverspec)
 1.  check databases are created
-2.  check privileges of database is set
-3.  check nova user is created
-4.  check admin role is granted to nova user
-5.  check nova service entity is created
-6.  check endpoints for nova are created
+2.  check privileges of database are set
+3.  check nova and placement users are created
+4.  check admin role is granted to nova and placement users
+5.  check nova and placement service entities are created
+6.  check endpoints for nova and placement are created
 7.  check packages are installed
-8.  check servcie databases is deployed
-9.  check services are enabled and started
-10. check cpu allocation ratio is specified
-11. check ram allocation ratio is specified
+8.  check servcie databases are deployed
+9.  check cell0 and cell1 cells are registered
+10. check services are enabled and started
+11. check cpu allocation ratio is specified
+12. check ram allocation ratio is specified
 
 ## tests (infrataster)
 nothing
@@ -40,7 +43,7 @@ openstack_nova_controller:
   novadb_pass: password             # password of nova databases
   scripts_dir: /root/openrc_files   # location of openrc files
   nova_pass: password               # password of nova user
-  domain: default                   # domain name of openstack environment
+  placement_pass: password          # password of placement user
   region: RegionOne                 # region name of openstack environment
   controller: localhost             # hostname or ip of controller node
   mgmt_ip: 127.0.0.1                # ip of management network for controller node
