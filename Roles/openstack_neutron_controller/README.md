@@ -41,7 +41,6 @@ openstack_neutron_controller:
   mariadb_pass: password            # root password of mariadb
   neutron_dbpass: password          # password of neutron database
   scripts_dir: /root/openrc_files   # location of openrc files
-  domain: default                   # domain name of openstack environment
   neutron_pass: password            # password of neutron user
   region: RegionOne                 # region name of openstack environment
   controller: localhost             # hostname or ip of controller node

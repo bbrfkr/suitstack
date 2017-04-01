@@ -3,7 +3,6 @@ openstack_neutron_controller:
   mariadb_pass: password
   neutron_dbpass: password
   scripts_dir: /root/openrc_files
-  domain: default
   neutron_pass: password
   region: RegionOne
   controller: localhost

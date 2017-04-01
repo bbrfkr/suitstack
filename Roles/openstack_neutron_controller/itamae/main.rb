@@ -5,7 +5,6 @@ node.reverse_merge!(defaults_load(__FILE__))
 mariadb_pass = node['openstack_neutron_controller']['mariadb_pass']
 neutron_dbpass = node['openstack_neutron_controller']['neutron_dbpass']
 scripts_dir = node['openstack_neutron_controller']['scripts_dir']
-domain = node['openstack_neutron_controller']['domain']
 neutron_pass = node['openstack_neutron_controller']['neutron_pass']
 region = node['openstack_neutron_controller']['region']
 controller = node['openstack_neutron_controller']['controller']
@@ -41,7 +40,7 @@ EOS
 end
 
 # create neutron user for openstack environment
-execute "#{ script } openstack user create --domain #{ domain } --password #{ neutron_pass } neutron" do
+execute "#{ script } openstack user create --domain default --password #{ neutron_pass } neutron" do
   not_if "#{ script } openstack user list | grep neutron"
 end
 
@@ -97,20 +96,12 @@ connection = mysql+pymysql://neutron:#{ neutron_dbpass }@#{ controller }/neutron
 core_plugin = ml2
 service_plugins = router
 allow_overlapping_ips = True
-rpc_backend = rabbit
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 auth_strategy = keystone
 notify_nova_on_port_status_changes = True
 notify_nova_on_port_data_changes = True
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_controller, DEFAULT)", content)
-
-    section = "[oslo_messaging_rabbit]"
-    settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_controller, oslo_messaging_rabbit)", content)
 
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
@@ -118,8 +109,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = neutron
 password = #{ neutron_pass }
@@ -130,8 +121,8 @@ password = #{ neutron_pass }
     settings = <<-"EOS"
 auth_url = http://#{ controller }:35357
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 region_name = #{ region }
 project_name = service
 username = nova
@@ -225,8 +216,7 @@ file "/etc/neutron/l3_agent.ini" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
-external_network_bridge =
+interface_driver = linuxbridge
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_controller, DEFAULT)", content)
   end
@@ -242,7 +232,7 @@ file "/etc/neutron/dhcp_agent.ini" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
+interface_driver = linuxbridge
 dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
 enable_isolated_metadata = True
     EOS
@@ -276,8 +266,8 @@ file "/etc/nova/nova.conf" do
 url = http://#{ controller }:9696
 auth_url = http://#{ controller }:35357
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 region_name = #{ region }
 project_name = service
 username = neutron
