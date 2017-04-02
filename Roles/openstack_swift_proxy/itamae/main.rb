@@ -3,7 +3,6 @@ require './Modules/blockinfile'
 node.reverse_merge!(defaults_load(__FILE__))
 
 scripts_dir = node['openstack_swift_proxy']['scripts_dir']
-domain = node['openstack_swift_proxy']['domain']
 swift_pass = node['openstack_swift_proxy']['swift_pass']
 region = node['openstack_swift_proxy']['region']
 controller = node['openstack_swift_proxy']['controller']
@@ -16,7 +15,7 @@ hash_path_prefix = node['openstack_swift_proxy']['hash_path_prefix']
 script = "source #{ scripts_dir }/admin-openrc &&"
 
 # create swift user
-execute "#{ script } openstack user create --domain #{ domain } --password #{ swift_pass } swift" do
+execute "#{ script } openstack user create --domain default --password #{ swift_pass } swift" do
   not_if "#{ script } openstack user list | grep swift"
 end
 
@@ -44,7 +43,7 @@ execute "#{ script } openstack endpoint create --region #{ region } object-store
 end
 
 # install packages
-packages = ["openstack-swift-proxy", "python2-swiftclient", "python-keystoneclient", \
+packages = ["openstack-swift-proxy", "python-swiftclient", "python-keystoneclient", \
             "python-keystonemiddleware", "memcached"]
 packages.each do |pkg|
   package pkg do
@@ -60,7 +59,6 @@ template "/etc/swift/proxy-server.conf" do
   source "templates/proxy-server.conf.erb"
   mode "640"
   variables(controller: controller, \
-            domain: domain, \
             swift_pass: swift_pass)
 end
 
@@ -75,7 +73,7 @@ storage_nodes.each do |str_node|
     cmd = <<-"EOS"
       cd /etc/swift && \\
       swift-ring-builder account.builder \\
-      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6002 \\
+      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6202 \\
       --device #{ dev } --weight 100
     EOS
     execute cmd do
@@ -100,7 +98,7 @@ storage_nodes.each do |str_node|
     cmd = <<-"EOS"
       cd /etc/swift && \\
       swift-ring-builder container.builder \\
-      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6001 \\
+      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6201 \\
       --device #{ dev } --weight 100
     EOS
     execute cmd do
@@ -125,7 +123,7 @@ storage_nodes.each do |str_node|
     cmd = <<-"EOS"
       cd /etc/swift && \\
       swift-ring-builder object.builder \\
-      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6000 \\
+      add --region 1 --zone 1 --ip #{ str_node['mgmt_ip'] } --port 6200 \\
       --device #{ dev } --weight 100
     EOS
     execute cmd do
