@@ -2,6 +2,8 @@ require './Modules/spec_helper_serverspec'
 require './Modules/defaults'
 property.reverse_merge!(defaults_load(__FILE__))
 
+controller = property['openstack_memcached']['controller']
+
 describe ("openstack_memcached") do
   describe ("check packages are installed") do
     packages = ["memcached", "python-memcached"]
@@ -14,7 +16,7 @@ describe ("openstack_memcached") do
 
   describe ("check listen address includes controller") do
     describe file("/etc/sysconfig/memcached") do
-      its(:content) { should match /^OPTIONS="-l 127\.0\.0\.1,::1,property['openstack_memcached']['controller']"$/ }
+      its(:content) { should match /^OPTIONS="-l 127\.0\.0\.1,::1,#{ controller }"$/ }
     end
   end
 
