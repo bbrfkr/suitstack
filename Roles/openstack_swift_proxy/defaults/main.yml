@@ -1,7 +1,6 @@
 ---
 openstack_swift_proxy:
   scripts_dir: /root/openrc_files
-  domain: default
   swift_pass: password
   region: RegionOne
   controller: localhost

@@ -47,7 +47,6 @@ nothing
 ---
 openstack_swift_proxy:
   scripts_dir: /root/openrc_files                                # location of openrc files
-  domain: default                                                # domain name of openstack environment
   swift_pass: password                                           # password of swift user
   region: RegionOne                                              # region name of openstack environment
   controller: localhost                                          # hostname or ip of controller node
