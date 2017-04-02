@@ -238,8 +238,23 @@ password = #{ placement_pass }
 end
 
 # supply bug fix to enable access to the placement api
-remote_file "/etc/httpd/conf.d/00-nova-placement-api.conf" do
-  action :create 
+file "/etc/httpd/conf.d/00-nova-placement-api.conf" do
+  action :edit
+  block do |content|
+    settings = <<-"EOS"
+<Directory /usr/bin>
+   <IfVersion >= 2.4>
+      Require all granted
+   </IfVersion>
+   <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+   </IfVersion>
+</Directory>
+    EOS
+    content.gsub!(/#{ settings }/, "")
+    content.concat(settings)
+  end
 end
 
 # create keyfiles directory
