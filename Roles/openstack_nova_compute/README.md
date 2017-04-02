@@ -26,6 +26,7 @@ openstack_nova_compute:
   nova_pass: password      # password of nova user
   placement_pass: password # password of placement user
   console_keymap: ja       # keymap used by console
+  region: RegionOne        # region name of openstack environment
 ```
 
 ## supported os

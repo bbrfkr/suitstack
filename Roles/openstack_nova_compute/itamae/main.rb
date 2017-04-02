@@ -8,6 +8,7 @@ rabbitmq_pass = node['openstack_nova_compute']['rabbitmq_pass']
 nova_pass = node['openstack_nova_compute']['nova_pass']
 placement_pass = node['openstack_nova_compute']['placement_pass']
 console_keymap = node['openstack_nova_compute']['console_keymap']
+region = node['openstack_nova_compute']['region']
 
 package "openstack-nova-compute" do
   action :install
