@@ -9,6 +9,8 @@ admin_pass = node['openstack_keystone_setup']['admin_pass']
 demo_pass = node['openstack_keystone_setup']['demo_pass']
 scripts_dir = node['openstack_keystone_setup']['scripts_dir']
 
+envs = "source #{ scripts_dir }/admin-openrc &&"
+
 # create directory for openrc files
 directory scripts_dir do
   action :create
