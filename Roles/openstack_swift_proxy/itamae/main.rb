@@ -43,8 +43,8 @@ execute "#{ script } openstack endpoint create --region #{ region } object-store
 end
 
 # install packages
-packages = ["openstack-swift-proxy", "python-swiftclient", "python-keystoneclient", \
-            "python-keystonemiddleware", "memcached"]
+packages = ["openstack-swift-proxy", "python2-swiftclient", "python2-keystoneclient", \
+            "python2-keystonemiddleware", "memcached"]
 packages.each do |pkg|
   package pkg do
     action :install

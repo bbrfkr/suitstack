@@ -36,7 +36,7 @@ describe ("openstack_swift_proxy") do
 
   describe ("check swift packages are installed") do
     packages = ["openstack-swift-proxy", "python2-swiftclient", \
-                "python-keystoneclient", "python-keystonemiddleware", \
+                "python2-keystoneclient", "python2-keystonemiddleware", \
                 "memcached"]
     packages.each do |pkg|
       describe package(pkg) do
