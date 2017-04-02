@@ -28,7 +28,7 @@ execute "mysql -u root -p#{ mariadb_pass } -e \"CREATE DATABASE nova;\"" do
 end
 
 # create nova_cell0 database
-execute "mysql -u root -p#{ mariadb_pass } -e \"CREATE DATABASE novai_cell0;\"" do
+execute "mysql -u root -p#{ mariadb_pass } -e \"CREATE DATABASE nova_cell0;\"" do
   not_if "mysql -u root -p#{ mariadb_pass } -e \"show databases;\" | grep \"nova_cell0\""
 end
 
