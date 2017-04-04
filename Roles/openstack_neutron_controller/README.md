@@ -6,17 +6,18 @@ This role executes install and setting neutron for controller node.
 ## procedures
 1.  create neutron database
 2.  grant privileges to access database
-3.  create neutron user
-4.  add admin role to neutron user
-5.  create neutron service entity
-6.  create endpoints for neutron
-7.  install packages
-8.  edit config file
-9.  create keyfiles dir
-10. create plugin.ini symbolic link
-11. deploy service database
-12. restart openstack-nova-api service
-13. enable and start services
+3.  alter default encoding of neutron database
+4.  create neutron user
+5.  add admin role to neutron user
+6.  create neutron service entity
+7.  create endpoints for neutron
+8.  install packages
+9.  edit config file
+10. create keyfiles dir
+11. create plugin.ini symbolic link
+12. deploy service database
+13. restart openstack-nova-api service
+14. enable and start services
 
 ## tests (serverspec)
 1.  check neutron database are created
