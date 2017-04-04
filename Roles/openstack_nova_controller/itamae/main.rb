@@ -71,7 +71,7 @@ execute <<-"EOS" do
   mysql -u root -p#{ mariadb_pass } -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'localhost' IDENTIFIED BY '#{ nova_dbpass }';"
 EOS
   not_if <<-"EOS"
-    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova_cell0'@'localhost'" | grep "ALL PRIVILEGES ON \\`nova\\`.* TO 'nova'@'localhost'"
+    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova'@'localhost'" | grep "ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'localhost'"
   EOS
 end
 
@@ -79,7 +79,7 @@ execute <<-"EOS" do
   mysql -u root -p#{ mariadb_pass } -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%' IDENTIFIED BY '#{ nova_dbpass }';"
 EOS
   not_if <<-"EOS"
-    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova_cell0'@'%'" | grep "ALL PRIVILEGES ON \\`nova\\`.* TO 'nova'@'%'"
+    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova'@'%'" | grep "ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'%'"
   EOS
 end
 
@@ -118,7 +118,7 @@ end
 
 # grant admin role to nova user
 execute "#{ script } openstack role add --project service --user placement admin" do
-  not_if "#{ script } openstack role list --project service --user placement | awk '{ print $4 }' | grep admian"
+  not_if "#{ script } openstack role list --project service --user placement | awk '{ print $4 }' | grep admin"
 end
 
 # create nova service entity
@@ -252,8 +252,9 @@ file "/etc/httpd/conf.d/00-nova-placement-api.conf" do
    </IfVersion>
 </Directory>
     EOS
-    content.gsub!(/#{ settings }/, "")
-    content.concat(settings)
+    if not (content =~ /#{ settings }/)
+      content.concat("\n" + settings + "\n")
+    end
   end
 end
 
