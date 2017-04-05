@@ -38,7 +38,6 @@ openstack_cinder_storage:
   controller: controller   # hostname or ip of controller node
   mgmt_ip: 127.0.0.1       # ip of management network for controller node
   rabbitmq_pass: password  # password of openstack user for rabbitmq
-  domain: default          # domain name of openstack environment
   cinder_pass: password    # password of cinder user 
 ```
 

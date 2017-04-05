@@ -8,7 +8,6 @@ cinder_dbpass = node['openstack_cinder_storage']['cinder_dbpass']
 controller = node['openstack_cinder_storage']['controller']
 mgmt_ip = node['openstack_cinder_storage']['mgmt_ip']
 rabbitmq_pass = node['openstack_cinder_storage']['rabbitmq_pass']
-domain = node['openstack_cinder_storage']['domain']
 cinder_pass = node['openstack_cinder_storage']['cinder_pass']
 
 # install lvm package
@@ -100,7 +99,7 @@ connection = mysql+pymysql://cinder:#{ cinder_dbpass }@#{ controller }/cinder
 
     section = "[DEFAULT]"
     settings = <<-"EOS"
-rpc_backend = rabbit
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 auth_strategy = keystone
 my_ip = #{ mgmt_ip }
 enabled_backends = lvm
@@ -108,22 +107,14 @@ glance_api_servers = http://#{ controller }:9292
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_cinder_storage, DEFAULT)", content)
 
-    section = "[oslo_messaging_rabbit]"
-    settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_cinder_storage, oslo_messaging_rabbit)", content)
-
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
 auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = cinder
 password = #{ cinder_pass }
