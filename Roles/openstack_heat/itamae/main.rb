@@ -5,7 +5,6 @@ node.reverse_merge!(defaults_load(__FILE__))
 mariadb_pass = node['openstack_heat']['mariadb_pass']
 heat_dbpass = node['openstack_heat']['heat_dbpass']
 scripts_dir = node['openstack_heat']['scripts_dir']
-domain = node['openstack_heat']['domain']
 heat_pass = node['openstack_heat']['heat_pass']
 region = node['openstack_heat']['region']
 controller = node['openstack_heat']['controller']
@@ -38,7 +37,7 @@ EOS
 end
 
 # create heat user for openstack environment
-execute "#{ script } openstack user create --domain #{ domain } --password #{ heat_pass } heat" do
+execute "#{ script } openstack user create --domain default --password #{ heat_pass } heat" do
   not_if "#{ script } openstack user list | grep -v \"heat_domain_admin\" | grep heat"
 end
 
@@ -129,7 +128,7 @@ connection = mysql+pymysql://heat:#{ heat_dbpass }@#{ controller }/heat
 
     section = "[DEFAULT]"
     settings = <<-"EOS"
-rpc_backend = rabbit
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 heat_metadata_server_url = http://#{ controller }:8000
 heat_waitcondition_server_url = http://#{ controller }:8000/v1/waitcondition
 stack_domain_admin = heat_domain_admin
@@ -137,14 +136,6 @@ stack_domain_admin_password = #{ heat_domain_admin_pass }
 stack_user_domain_name = heat
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_heat, DEFAULT)", content)
-
-    section = "[oslo_messaging_rabbit]"
-    settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_heatr, oslo_messaging_rabbit)", content)
 
     if content !~ /\[keystone_authtoken\]/
       content.concat("\n[keystone_authtoken]\n")
@@ -156,8 +147,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = heat
 password = #{ heat_pass }
@@ -166,11 +157,11 @@ password = #{ heat_pass }
 
     section = "[trustee]"
     settings = <<-"EOS"
-uth_plugin = password
+auth_type = password
 auth_url = http://#{ controller }:35357
 username = heat
 password = #{ heat_pass }
-user_domain_name = #{ domain }
+user_domain_name = default
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_heat, trustee)", content)
 

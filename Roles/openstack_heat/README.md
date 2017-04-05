@@ -46,7 +46,6 @@ openstack_heat:
   mariadb_pass: password            # root password of mariadb
   heat_dbpass: password             # password of heat database
   scripts_dir: /root/openrc_files   # location of openrc files
-  domain: default                   # domain name of openstack environment
   heat_pass: password               # password of heat user
   region: RegionOne                 # region name of openstack environment
   controller: localhost             # hostname or ip of controller node
