@@ -41,7 +41,6 @@ openstack_cinder_controller:
   cinder_dbpass: password           # password of cinder database
   scripts_dir: /root/openrc_files   # location of openrc files 
   cinder_pass: password             # password of cinder user
-  domain: default                   # domain name of openstack environment
   region: RegionOne                 # region name of openstack environment
   controller: localhost             # hostname or ip of controller node
   mgmt_ip: 127.0.0.1                # ip of management network for controller node 

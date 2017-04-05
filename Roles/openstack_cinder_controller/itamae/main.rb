@@ -6,7 +6,6 @@ mariadb_pass = node['openstack_cinder_controller']['mariadb_pass']
 cinder_dbpass = node['openstack_cinder_controller']['cinder_dbpass']
 scripts_dir = node['openstack_cinder_controller']['scripts_dir']
 cinder_pass = node['openstack_cinder_controller']['cinder_pass']
-domain = node['openstack_cinder_controller']['domain']
 region = node['openstack_cinder_controller']['region']
 controller = node['openstack_cinder_controller']['controller']
 mgmt_ip = node['openstack_cinder_controller']['mgmt_ip']
@@ -38,7 +37,7 @@ EOS
 end
 
 # create cinder user for openstack environment
-execute "#{ script } openstack user create --domain #{ domain } --password #{ cinder_pass } cinder" do
+execute "#{ script } openstack user create --domain default --password #{ cinder_pass } cinder" do
   not_if "#{ script } openstack user list | grep cinder"
 end
 
@@ -100,19 +99,11 @@ connection = mysql+pymysql://cinder:#{ cinder_dbpass }@#{ controller }/cinder
 
     section = "[DEFAULT]"
     settings = <<-"EOS"
-rpc_backend = rabbit
+transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
 auth_strategy = keystone
 my_ip = #{ mgmt_ip }
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_cinder_controller, DEFAULT)", content)
-
-    section = "[oslo_messaging_rabbit]"
-    settings = <<-"EOS"
-rabbit_host = #{ controller }
-rabbit_userid = openstack
-rabbit_password = #{ rabbitmq_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_cinder_controller, oslo_messaging_rabbit)", content)
 
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
@@ -120,8 +111,8 @@ auth_uri = http://#{ controller }:5000
 auth_url = http://#{ controller }:35357
 memcached_servers = #{ controller }:11211
 auth_type = password
-project_domain_name = #{ domain }
-user_domain_name = #{ domain }
+project_domain_name = default
+user_domain_name = default
 project_name = service
 username = cinder
 password = #{ cinder_pass }
