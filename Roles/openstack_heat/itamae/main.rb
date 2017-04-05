@@ -166,7 +166,7 @@ password = #{ heat_pass }
 
     section = "[trustee]"
     settings = <<-"EOS"
-uth_plugin = password
+auth_plugin = password
 auth_url = http://#{ controller }:35357
 username = heat
 password = #{ heat_pass }
