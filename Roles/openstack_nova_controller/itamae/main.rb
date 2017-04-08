@@ -77,15 +77,15 @@ execute "#{ script } openstack service create --name nova --description \"OpenSt
 end
 
 # create endpoints for nova
-execute "#{ script } openstack endpoint create --region #{ region } compute public http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
+execute "#{ script } openstack endpoint create --region #{ region } compute public http://#{ controller }:8774/v2.1/%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep public"
 end
 
-execute "#{ script } openstack endpoint create --region #{ region } compute internal http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
+execute "#{ script } openstack endpoint create --region #{ region } compute internal http://#{ controller }:8774/v2.1/%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep internal"
 end
 
-execute "#{ script } openstack endpoint create --region #{ region } compute admin http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
+execute "#{ script } openstack endpoint create --region #{ region } compute admin http://#{ controller }:8774/v2.1/%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep admin"
 end
 
