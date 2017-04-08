@@ -39,15 +39,6 @@ EOS
   EOS
 end
 
-# alter default encoding of neutron database
-execute <<-"EOS" do
-  mysql -u root -p#{ mariadb_pass } -e "alter database neutron character set utf8;"
-EOS
-  not_if <<-"EOS"
-    mysql -uroot -p#{ mariadb_pass } -e "show create database neutron;" | grep utf8
-  EOS
-end
-
 # create neutron user for openstack environment
 execute "#{ script } openstack user create --domain default --password #{ neutron_pass } neutron" do
   not_if "#{ script } openstack user list | grep neutron"
@@ -225,7 +216,7 @@ file "/etc/neutron/l3_agent.ini" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-interface_driver = linuxbridge
+interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_controller, DEFAULT)", content)
   end
@@ -241,7 +232,7 @@ file "/etc/neutron/dhcp_agent.ini" do
   block do |content|
     section = "[DEFAULT]"
     settings = <<-"EOS"
-interface_driver = linuxbridge
+interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
 dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
 enable_isolated_metadata = True
     EOS
