@@ -4,7 +4,7 @@ property.reverse_merge!(defaults_load(__FILE__))
 
 describe ("openstack_packages") do
   describe ("check repository is registered") do
-    describe package("centos-release-openstack-ocata") do
+    describe package("centos-release-openstack-newton") do
       it { should be_installed }
     end
   end
