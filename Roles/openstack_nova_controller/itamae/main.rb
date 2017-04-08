@@ -27,11 +27,6 @@ execute "mysql -u root -p#{ mariadb_pass } -e \"CREATE DATABASE nova;\"" do
   not_if "mysql -u root -p#{ mariadb_pass } -e \"show databases;\" | grep \"^nova$\""
 end
 
-# create nova_cell0 database
-execute "mysql -u root -p#{ mariadb_pass } -e \"CREATE DATABASE nova_cell0;\"" do
-  not_if "mysql -u root -p#{ mariadb_pass } -e \"show databases;\" | grep \"nova_cell0\""
-end
-
 # grant permissions to nova_api database
 execute <<-"EOS" do
   mysql -u root -p#{ mariadb_pass } -e "GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY '#{ nova_dbpass }';"
@@ -66,23 +61,6 @@ EOS
   EOS
 end
 
-# grant permissions to nova_cell0 database
-execute <<-"EOS" do
-  mysql -u root -p#{ mariadb_pass } -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'localhost' IDENTIFIED BY '#{ nova_dbpass }';"
-EOS
-  not_if <<-"EOS"
-    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova'@'localhost'" | grep "ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'localhost'"
-  EOS
-end
-
-execute <<-"EOS" do
-  mysql -u root -p#{ mariadb_pass } -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%' IDENTIFIED BY '#{ nova_dbpass }';"
-EOS
-  not_if <<-"EOS"
-    mysql -uroot -p#{ mariadb_pass } -e "show grants for 'nova'@'%'" | grep "ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'%'"
-  EOS
-end
-
 # create nova user for openstack environment
 execute "#{ script } openstack user create --domain default --password #{ nova_pass } nova" do
   not_if "#{ script } openstack user list | grep nova"
@@ -99,50 +77,22 @@ execute "#{ script } openstack service create --name nova --description \"OpenSt
 end
 
 # create endpoints for nova
-execute "#{ script } openstack endpoint create --region #{ region } compute public http://#{ controller }:8774/v2.1" do
+execute "#{ script } openstack endpoint create --region #{ region } compute public http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep public"
 end
 
-execute "#{ script } openstack endpoint create --region #{ region } compute internal http://#{ controller }:8774/v2.1" do
+execute "#{ script } openstack endpoint create --region #{ region } compute internal http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep internal"
 end
 
-execute "#{ script } openstack endpoint create --region #{ region } compute admin http://#{ controller }:8774/v2.1" do
+execute "#{ script } openstack endpoint create --region #{ region } compute admin http://#{ controller }:8774/v2.1%\\(tenant_id\\)s" do
   not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep nova | grep admin"
-end
-
-# create placement user for openstack environment
-execute "#{ script } openstack user create --domain default --password #{ placement_pass } placement" do
-  not_if "#{ script } openstack user list | grep placement"
-end
-
-# grant admin role to nova user
-execute "#{ script } openstack role add --project service --user placement admin" do
-  not_if "#{ script } openstack role list --project service --user placement | awk '{ print $4 }' | grep admin"
-end
-
-# create nova service entity
-execute "#{ script } openstack service create --name placement --description \"Placement API\" placement" do
-  not_if "#{ script } openstack service list | grep placement"
-end
-
-# create endpoints for nova
-execute "#{ script } openstack endpoint create --region #{ region } placement public http://#{ controller }:8778" do
-  not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep placement | grep public"
-end
-
-execute "#{ script } openstack endpoint create --region #{ region } placement internal http://#{ controller }:8778" do
-  not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep placement | grep internal"
-end
-
-execute "#{ script } openstack endpoint create --region #{ region } placement admin http://#{ controller }:8778" do
-  not_if "#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep placement | grep admin"
 end
 
 # install packages
 packages = ["openstack-nova-api", "openstack-nova-conductor", \
             "openstack-nova-console", "openstack-nova-novncproxy", \
-            "openstack-nova-scheduler", "openstack-nova-placement-api"]
+            "openstack-nova-scheduler"]
 packages.each do |pkg|
   package pkg do
     action :install
@@ -162,6 +112,7 @@ file "/etc/nova/nova.conf" do
     settings = <<-"EOS"
 enabled_apis = osapi_compute,metadata
 transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
+auth_strategy = keystone
 my_ip = #{ mgmt_ip }
 use_neutron = True
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
@@ -182,12 +133,6 @@ connection = mysql+pymysql://nova:#{ nova_dbpass }@#{ controller }/nova
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_controller, database)", content)
 
-    section = "[api]"
-    settings = <<-"EOS"
-auth_strategy = keystone
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_controller, api)", content)
-
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
 auth_uri = http://#{ controller }:5000
@@ -204,7 +149,6 @@ password = #{ nova_pass }
 
     section = "[vnc]"
     settings = <<-"EOS"
-enabled = true
 vncserver_listen = $my_ip
 vncserver_proxyclient_address = $my_ip
     EOS
@@ -221,40 +165,6 @@ api_servers = http://#{ controller }:9292
 lock_path = /var/lib/nova/tmp
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_controller, oslo_concurrency)", content)
-
-    section = "[placement]"
-    settings = <<-"EOS"
-os_region_name = #{ region }
-project_domain_name = default
-project_name = service
-auth_type = password
-user_domain_name = default
-auth_url = http://#{ controller }:35357/v3
-username = placement
-password = #{ placement_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_controller, placement)", content)
-  end
-end
-
-# supply bug fix to enable access to the placement api
-file "/etc/httpd/conf.d/00-nova-placement-api.conf" do
-  action :edit
-  block do |content|
-    settings = <<-"EOS"
-<Directory /usr/bin>
-   <IfVersion >= 2.4>
-      Require all granted
-   </IfVersion>
-   <IfVersion < 2.4>
-      Order allow,deny
-      Allow from all
-   </IfVersion>
-</Directory>
-    EOS
-    if not (content =~ /#{ settings }/)
-      content.concat("\n" + settings + "\n")
-    end
   end
 end
 
@@ -266,16 +176,6 @@ end
 # deploy nova_api databases
 execute "su -s /bin/sh -c \"nova-manage api_db sync\" nova && touch #{ keyfiles_dir }/openstack_nova_controller/api_db_sync" do
   not_if "ls #{ keyfiles_dir }/openstack_nova_controller/api_db_sync"
-end
-
-# register the cell0 database
-execute "su -s /bin/sh -c \"nova-manage cell_v2 map_cell0\" nova && touch #{ keyfiles_dir }/openstack_nova_controller/map_cell0" do
-  not_if "ls #{ keyfiles_dir }/openstack_nova_controller/map_cell0"
-end
-
-# create the cell1 cell
-execute "su -s /bin/sh -c \"nova-manage cell_v2 create_cell --name=cell1 --verbose\" nova && touch #{ keyfiles_dir }/openstack_nova_controller/create_cell" do
-  not_if "ls #{ keyfiles_dir }/openstack_nova_controller/create_cell"
 end
 
 # deploy nova databases

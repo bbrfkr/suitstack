@@ -15,7 +15,6 @@ describe ("openstack_nova_controller") do
     describe command("mysql -u root -p#{ mariadb_pass } -e \"show databases;\"") do
       its(:stdout) { should match /\snova_api\s/ }
       its(:stdout) { should match /\snova\s/ }
-      its(:stdout) { should match /\snova_cell0\s/ }
     end
   end
 
@@ -39,39 +38,9 @@ describe ("openstack_nova_controller") do
     end
   end
 
-  describe ("check permissions are granted nova_cell0 database") do
-    describe command("mysql -uroot -p#{ mariadb_pass } -e \"show grants for 'nova'@'localhost'\" | grep \"ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'localhost'\"") do
-      its(:exit_status) { should eq 0 }
-    end
-
-    describe command("mysql -uroot -p#{ mariadb_pass } -e \"show grants for 'nova'@'%'\" | grep \"ALL PRIVILEGES ON \\`nova_cell0\\`.* TO 'nova'@'%'\"") do
-      its(:exit_status) { should eq 0 }
-    end
-  end
-
-  describe ("check nova and placement user is created") do
-    describe command("#{ script } openstack user list") do
-      its(:stdout) { should match /nova/ }
-      its(:stdout) { should match /placement/ }
-    end
-  end
-
   describe ("check admin role is granted to nova user") do
     describe command("#{ script } openstack role list --project service --user nova | awk '{ print $4 }'") do
       its(:stdout) { should match /admin/ }
-    end
-  end
-
-  describe ("check admin role is granted to placement user") do
-    describe command("#{ script } openstack role list --project service --user placement | awk '{ print $4 }'") do
-      its(:stdout) { should match /admin/ }
-    end
-  end
-
-  describe ("check nova and placement service entity is created") do
-    describe command ("#{ script } openstack service list") do
-      its(:stdout) { should match /nova/ }
-      its(:stdout) { should match /placement/ }
     end
   end
 
@@ -83,18 +52,10 @@ describe ("openstack_nova_controller") do
     end
   end
 
-  describe ("check endpoints for placement are created") do
-    describe command("#{ script } openstack endpoint list | awk '{ print $6, $12 }' | grep placement") do
-      its(:stdout) { should match /public/ }
-      its(:stdout) { should match /internal/ }
-      its(:stdout) { should match /admin/ }
-    end
-  end
-
   describe ("check packages are installed") do
     packages = ["openstack-nova-api", "openstack-nova-conductor", \
                 "openstack-nova-console", "openstack-nova-novncproxy", \
-                "openstack-nova-scheduler", "openstack-nova-placement-api"]
+                "openstack-nova-scheduler"]
     packages.each do |pkg|
       describe package(pkg) do
         it { should be_installed }
@@ -102,24 +63,13 @@ describe ("openstack_nova_controller") do
     end
   end
 
-  describe ("check nova_api, nova and cell0 databases are deployed") do
+  describe ("check nova_api and nova databases are deployed") do
     describe file("#{ keyfiles_dir }/openstack_nova_controller/api_db_sync") do
       it { should exist }
     end
 
     describe file("#{ keyfiles_dir }/openstack_nova_controller/db_sync") do
       it { should exist }
-    end
-
-    describe file("#{ keyfiles_dir }/openstack_nova_controller/map_cell0") do
-      it { should exist }
-    end
-  end
-
-  describe ("check cell0 and cell1 are registered") do
-    describe command("nova-manage cell_v2 list_cells") do
-      its(:stdout) { should match /cell0/ }
-      its(:stdout) { should match /cell1/ }
     end
   end
 
