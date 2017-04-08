@@ -25,17 +25,12 @@ file "/etc/nova/nova.conf" do
     settings = <<-"EOS"
 enabled_apis = osapi_compute,metadata
 transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
+auth_strategy = keystone
 my_ip = #{ mgmt_ip }
 use_neutron = True
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, DEFAULT)", content) 
-
-    section = "[api]"
-    settings = <<-"EOS"
-auth_strategy = keystone
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, api)", content) 
 
     section = "[keystone_authtoken]"
     settings = <<-"EOS"
@@ -71,19 +66,6 @@ api_servers = http://#{ controller }:9292
 lock_path = /var/lib/nova/tmp
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, oslo_concurrency)", content)
-
-    section = "[placement]"
-    settings = <<-"EOS"
-os_region_name = #{ region }
-project_domain_name = default
-project_name = service
-auth_type = password
-user_domain_name = default
-auth_url = http://#{ controller }:35357/v3
-username = placement
-password = #{ placement_pass }
-    EOS
-    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_nova_compute, placement)", content)
 
     if hw_support == "0"
       section = "[libvirt]"
