@@ -1,7 +1,7 @@
 [swift-hash]
 
 # swift_hash_path_suffix and swift_hash_path_prefix are used as part of the
-# hashing algorithm when determining data placement in the cluster.
+# the hashing algorithm when determining data placement in the cluster.
 # These values should remain secret and MUST NOT change
 # once a cluster has been deployed.
 # Use only printable chars (python -c "import string; print(string.printable)")
@@ -136,10 +136,9 @@ aliases = yellow, orange
 
 
 # By default the maximum number of allowed headers depends on the number of max
-# allowed metadata settings plus a default value of 36 for swift internally
-# generated headers and regular http headers.  If for some reason this is not
-# enough (custom middleware for example) it can be increased with the
-# extra_header_count constraint.
+# allowed metadata settings plus a default value of 32 for regular http
+# headers.  If for some reason this is not enough (custom middleware for
+# example) it can be increased with the extra_header_count constraint.
 
 #extra_header_count = 0
 
