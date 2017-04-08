@@ -128,7 +128,7 @@ connection = mysql+pymysql://heat:#{ heat_dbpass }@#{ controller }/heat
 
     section = "[DEFAULT]"
     settings = <<-"EOS"
-transport_url = rabbit://openstack:#{ rabbitmq_pass }@#{ controller }
+rpc_backend = rabbit
 heat_metadata_server_url = http://#{ controller }:8000
 heat_waitcondition_server_url = http://#{ controller }:8000/v1/waitcondition
 stack_domain_admin = heat_domain_admin
@@ -136,6 +136,14 @@ stack_domain_admin_password = #{ heat_domain_admin_pass }
 stack_user_domain_name = heat
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_heat, DEFAULT)", content)
+
+    section = "[oslo_messaging_rabbit]"
+    settings = <<-"EOS"
+rabbit_host = #{ controller }
+rabbit_userid = openstack
+rabbit_password = #{ rabbitmq_pass }
+    EOS
+    blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_heat, oslo_messaging_rabbit)", content)
 
     if content !~ /\[keystone_authtoken\]/
       content.concat("\n[keystone_authtoken]\n")
