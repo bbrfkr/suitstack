@@ -39,6 +39,15 @@ EOS
   EOS
 end
 
+# alter default encoding of neutron database
+execute <<-"EOS" do
+  mysql -u root -p#{ mariadb_pass } -e "alter database neutron character set utf8;"
+EOS
+  not_if <<-"EOS"
+    mysql -uroot -p#{ mariadb_pass } -e "show create database neutron;" | grep utf8
+  EOS
+end
+
 # create neutron user for openstack environment
 execute "#{ script } openstack user create --domain default --password #{ neutron_pass } neutron" do
   not_if "#{ script } openstack user list | grep neutron"
