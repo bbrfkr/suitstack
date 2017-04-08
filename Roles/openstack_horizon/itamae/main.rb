@@ -17,7 +17,7 @@ file "/etc/openstack-dashboard/local_settings" do
   notifies :restart, "service[memcached]", :immediately
   block do |content|
     content.gsub!(/^OPENSTACK_HOST = .*$/, "OPENSTACK_HOST = \"#{ controller }\"") 
-    content.gsub!(/^ALLOWED_HOSTS = .*$/, "ALLOWED_HOSTS = ['*']") 
+    content.gsub!(/^ALLOWED_HOSTS = .*$/, "ALLOWED_HOSTS = ['*', ]") 
     memcached_config = <<-"EOF"
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
