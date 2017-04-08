@@ -77,29 +77,17 @@ swift_dir = /etc/swift
 #
 # client_timeout = 60
 # eventlet_debug = false
-#
-# You can set scheduling priority of processes. Niceness values range from -20
-# (most favorable to the process) to 19 (least favorable to the process).
-# nice_priority =
-#
-# You can set I/O scheduling class and priority of processes. I/O niceness
-# class values are IOPRIO_CLASS_RT (realtime), IOPRIO_CLASS_BE (best-effort) and
-# IOPRIO_CLASS_IDLE (idle). I/O niceness priority is a number which goes from
-# 0 to 7. The higher the value, the lower the I/O priority of the process.
-# Work only with ionice_class.
-# ionice_class =
-# ionice_priority =
 
 [pipeline:main]
 pipeline = catch_errors gatekeeper healthcheck proxy-logging cache container_sync bulk ratelimit authtoken keystoneauth container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server
 # This sample pipeline uses tempauth and is used for SAIO dev work and
 # testing. See below for a pipeline using keystone.
-#pipeline = catch_errors gatekeeper healthcheck proxy-logging cache container_sync bulk tempurl ratelimit tempauth copy container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server
+#pipeline = catch_errors gatekeeper healthcheck proxy-logging cache container_sync bulk tempurl ratelimit tempauth container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server
 
 # The following pipeline shows keystone integration. Comment out the one
 # above and uncomment this one. Additional steps for integrating keystone are
 # covered further below in the filter sections for authtoken and keystoneauth.
-#pipeline = catch_errors gatekeeper healthcheck proxy-logging cache container_sync bulk tempurl ratelimit authtoken keystoneauth copy container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server
+#pipeline = catch_errors gatekeeper healthcheck proxy-logging cache container_sync bulk tempurl ratelimit authtoken keystoneauth container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server
 
 [app:proxy-server]
 use = egg:swift#proxy
@@ -144,6 +132,11 @@ account_autocreate = True
 # If set to 'true' any authorized user may create and delete accounts; if
 # 'false' no one, even authorized, can.
 # allow_account_management = false
+#
+# Set object_post_as_copy = false to turn on fast posts where only the metadata
+# changes are stored anew and the original data file is kept in place. This
+# makes for quicker posts.
+# object_post_as_copy = true
 #
 # If set to 'true' authorized accounts that do not yet exist within the Swift
 # cluster will be automatically created.
@@ -234,18 +227,6 @@ account_autocreate = True
 # exact definition of a swift_owner is up to the auth system in use, but
 # usually indicates administrative responsibilities.
 # swift_owner_headers = x-container-read, x-container-write, x-container-sync-key, x-container-sync-to, x-account-meta-temp-url-key, x-account-meta-temp-url-key-2, x-container-meta-temp-url-key, x-container-meta-temp-url-key-2, x-account-access-control
-#
-# You can set scheduling priority of processes. Niceness values range from -20
-# (most favorable to the process) to 19 (least favorable to the process).
-# nice_priority =
-#
-# You can set I/O scheduling class and priority of processes. I/O niceness
-# class values are IOPRIO_CLASS_RT (realtime), IOPRIO_CLASS_BE (best-effort) and
-# IOPRIO_CLASS_IDLE (idle). I/O niceness priority is a number which goes from
-# 0 to 7. The higher the value, the lower the I/O priority of the process.
-# Work only with ionice_class.
-# ionice_class =
-# ionice_priority =
 
 [filter:tempauth]
 use = egg:swift#tempauth
@@ -562,18 +543,6 @@ use = egg:swift#staticweb
 # set log_level = INFO
 # set log_headers = false
 # set log_address = /dev/log
-#
-# At times when it's impossible for staticweb to guess the outside
-# endpoint correctly, the url_base may be used to supply the URL
-# scheme and/or the host name (and port number) in order to generate
-# redirects.
-# Example values:
-#    http://www.example.com    - redirect to www.example.com
-#    https:                    - changes the schema only
-#    https://                  - same, changes the schema only
-#    //www.example.com:8080    - redirect www.example.com on port 8080
-#                                (schema unchanged)
-# url_base =
 
 # Note: Put tempurl before dlo, slo and your auth filter(s) in the pipeline
 [filter:tempurl]
@@ -672,23 +641,19 @@ use = egg:swift#bulk
 # max_failed_extractions = 1000
 # max_deletes_per_request = 10000
 # max_failed_deletes = 1000
-#
+
 # In order to keep a connection active during a potentially long bulk request,
 # Swift may return whitespace prepended to the actual response body. This
 # whitespace will be yielded no more than every yield_frequency seconds.
 # yield_frequency = 10
-#
+
 # Note: The following parameter is used during a bulk delete of objects and
 # their container. This would frequently fail because it is very likely
 # that all replicated objects have not been deleted by the time the middleware got a
 # successful response. It can be configured the number of retries. And the
 # number of seconds to wait between each retry will be 1.5**retry
+
 # delete_container_retry_count = 0
-#
-# To speed up the bulk delete process, multiple deletes may be executed in
-# parallel. Avoid setting this too high, as it gives clients a force multiplier
-# which may be used in DoS attacks. The suggested range is between 2 and 10.
-# delete_concurrency = 2
 
 # Note: Put after auth and staticweb in the pipeline.
 [filter:slo]
@@ -709,12 +674,6 @@ use = egg:swift#slo
 #
 # Time limit on GET requests (seconds)
 # max_get_time = 86400
-#
-# When deleting with ?multipart-manifest=delete, multiple deletes may be
-# executed in parallel. Avoid setting this too high, as it gives clients a
-# force multiplier which may be used in DoS attacks. The suggested range is
-# between 2 and 10.
-# delete_concurrency = 2
 
 # Note: Put after auth and staticweb in the pipeline.
 # If you don't put it in the pipeline, it will be inserted for you.
@@ -808,49 +767,3 @@ use = egg:swift#versioned_writes
 # in the container configuration file, which will be eventually
 # deprecated. See documentation for more details.
 # allow_versioned_writes = false
-
-# Note: Put after auth and before dlo and slo middlewares.
-# If you don't put it in the pipeline, it will be inserted for you.
-[filter:copy]
-use = egg:swift#copy
-# Set object_post_as_copy = false to turn on fast posts where only the metadata
-# changes are stored anew and the original data file is kept in place. This
-# makes for quicker posts.
-# When object_post_as_copy is set to True, a POST request will be transformed
-# into a COPY request where source and destination objects are the same.
-# object_post_as_copy = true
-
-# Note: To enable encryption, add the following 2 dependent pieces of crypto
-# middleware to the proxy-server pipeline. They should be to the right of all
-# other middleware apart from the final proxy-logging middleware, and in the
-# order shown in this example:
-# <other middleware> keymaster encryption proxy-logging proxy-server
-[filter:keymaster]
-use = egg:swift#keymaster
-
-# Sets the root secret from which encryption keys are derived. This must be set
-# before first use to a value that is a base64 encoding of at least 32 bytes.
-# The security of all encrypted data critically depends on this key, therefore
-# it should be set to a high-entropy value. For example, a suitable value may
-# be obtained by base-64 encoding a 32 byte (or longer) value generated by a
-# cryptographically secure random number generator. Changing the root secret is
-# likely to result in data loss.
-encryption_root_secret = changeme
-
-# Sets the path from which the keymaster config options should be read. This
-# allows multiple processes which need to be encryption-aware (for example,
-# proxy-server and container-sync) to share the same config file, ensuring
-# that the encryption keys used are the same. The format expected is similar
-# to other config files, with a single [keymaster] section and a single
-# encryption_root_secret option. If this option is set, the root secret
-# MUST NOT be set in proxy-server.conf.
-# keymaster_config_path =
-
-[filter:encryption]
-use = egg:swift#encryption
-
-# By default all PUT or POST'ed object data and/or metadata will be encrypted.
-# Encryption of new data and/or metadata may be disabled by setting
-# disable_encryption to True. However, all encryption middleware should remain
-# in the pipeline in order for existing encrypted data to be read.
-# disable_encryption = False
