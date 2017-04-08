@@ -19,7 +19,7 @@ nothing
 ## parameters
 ```
 openstack_memcached:
-  controller: controller  # ip or hostname of controller node
+  mgmt_ip: 127.0.0.1  # ip of management network
 ```
 
 ## supported os

@@ -14,7 +14,7 @@ file "/etc/sysconfig/memcached" do
   action :edit
   notifies :restart, "service[memcached]"
   block do |content|
-    content.gsub!(/127.0.0.1/, "#{ node['openstack_memcached']['controller'] }")
+    content.gsub!(/127.0.0.1/, "#{ node['openstack_memcached']['mgmt_ip'] }")
   end
 end
 
