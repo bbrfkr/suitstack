@@ -69,7 +69,7 @@ l2_population = True
 
     section = "[securitygroup]"
     settings = <<-"EOS"
-enable_security_group = true
+enable_security_group = True
 firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
     EOS
     blockinfile(section, settings, "MANAGED BY ITAMAE (openstack_neutron_compute, securitygroup)", content)
